@@ -69,6 +69,14 @@ public class SHTZSerialPort implements PWSerialPortListener {
         }
     }
 
+    public void release() {
+        this.listener = null;
+        this.state = SHTZTools.FINGER_STATE_DISABLED;
+        this.destoryHandler();
+        this.destoryHelper();
+        this.destoryBuffer();
+    }
+
     public void regist() {
         if (EmptyUtils.isNotEmpty(this.listener)) {
             this.listener.get().onSHTZRegistStated();
@@ -97,12 +105,8 @@ public class SHTZSerialPort implements PWSerialPortListener {
         return (this.state != SHTZTools.FINGER_STATE_COMPARE);
     }
 
-    public void release() {
-        this.listener = null;
-        this.state = SHTZTools.FINGER_STATE_DISABLED;
-        this.destoryHandler();
-        this.destoryHelper();
-        this.destoryBuffer();
+    public void changeListener(ISHTZListener listener) {
+        this.listener = new WeakReference<>(listener);
     }
 
     private boolean isInitialized() {

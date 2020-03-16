@@ -45,6 +45,13 @@ public class SHTZManager {
         }
     }
 
+    public void release() {
+        if(EmptyUtils.isNotEmpty(this.serialPort)){
+            this.serialPort.release();
+            this.serialPort = null;
+        }
+    }
+
     public void regist() {
         if(EmptyUtils.isNotEmpty(this.serialPort)){
             this.serialPort.regist();
@@ -70,10 +77,9 @@ public class SHTZManager {
         return false;
     }
 
-    public void release() {
-        if(EmptyUtils.isNotEmpty(this.serialPort)){
-            this.serialPort.release();
-            this.serialPort = null;
+    public void changeListener(ISHTZListener listener) {
+        if (EmptyUtils.isNotEmpty(this.serialPort)) {
+            this.serialPort.changeListener(listener);
         }
     }
 }

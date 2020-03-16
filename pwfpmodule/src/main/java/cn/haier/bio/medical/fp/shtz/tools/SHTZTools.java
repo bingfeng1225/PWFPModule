@@ -25,10 +25,6 @@ public class SHTZTools {
     public static final int FINGER_STATE_DOWNLOAD = 4;
     public static final int FINGER_STATE_REGIST_MODEL = 5;
 
-    private static final String FINGER_RESET_ON = "1";
-    private static final String FINGER_RESET_OFF = "0";
-    private static final String FINGER_RESET_USB = "/sys/kernel/finger_set/usb_value";
-    private static final String FINGER_RESET_TARGET = "/sys/kernel/finger_set/finger_value";
 
     public static boolean checkFrame(byte[] data) {
         if ((data[0] & 0xff) != 0xF5) {
