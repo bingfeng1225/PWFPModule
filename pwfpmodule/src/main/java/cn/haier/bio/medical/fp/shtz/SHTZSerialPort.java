@@ -14,7 +14,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.haier.bio.medical.fp.shtz.hub.HUBController;
 import cn.haier.bio.medical.fp.shtz.tools.SHTZTools;
 import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
@@ -30,7 +29,6 @@ public class SHTZSerialPort implements PWSerialPortListener {
     private ByteBuf buffer;
     private HandlerThread thread;
     private TZFPHandler handler;
-    private HUBController controller;
     private PWSerialPortHelper helper;
 
     private int state;
@@ -48,12 +46,11 @@ public class SHTZSerialPort implements PWSerialPortListener {
         
     }
 
-    public void init(ISHTZListener listener) {
+    public void init(String path) {
         this.createHandler();
-        this.createHelper();
+        this.createHelper(path);
         this.createBuffer();
         this.state = SHTZTools.FINGER_STATE_DISABLED;
-        this.listener = new WeakReference<>(listener);
     }
 
     public void enable() {
@@ -61,9 +58,6 @@ public class SHTZSerialPort implements PWSerialPortListener {
             this.enabled = true;
             this.helper.open();
             this.state = SHTZTools.FINGER_STATE_REGIST_MODEL;
-            if ("magton".equals(Build.MODEL)) {
-                createController();
-            }
         }
     }
 
@@ -72,9 +66,6 @@ public class SHTZSerialPort implements PWSerialPortListener {
             this.state = SHTZTools.FINGER_STATE_DISABLED;
             this.enabled = false;
             this.helper.close();
-            if ("magton".equals(Build.MODEL)) {
-                destoryController();
-            }
         }
     }
 
@@ -127,11 +118,11 @@ public class SHTZSerialPort implements PWSerialPortListener {
         return true;
     }
 
-    private void createHelper() {
+    private void createHelper(String path) {
         if (EmptyUtils.isEmpty(this.helper)) {
             this.helper = new PWSerialPortHelper("SHTZSerialPort");
             this.helper.setTimeout(10);
-            this.helper.setPath("/dev/ttyUSB0");
+            this.helper.setPath(path);
             this.helper.setBaudrate(115200);
             this.helper.init(this);
         }
@@ -170,20 +161,6 @@ public class SHTZSerialPort implements PWSerialPortListener {
         if (EmptyUtils.isNotEmpty(this.buffer)) {
             this.buffer.release();
             this.buffer = null;
-        }
-    }
-
-    private void createController() {
-        if (EmptyUtils.isEmpty(this.controller)) {
-            this.controller = new HUBController();
-            this.controller.init();
-        }
-    }
-
-    private void destoryController() {
-        if (EmptyUtils.isNotEmpty(this.controller)) {
-            this.controller.release();
-            this.controller = null;
         }
     }
 
@@ -555,11 +532,6 @@ public class SHTZSerialPort implements PWSerialPortListener {
             this.listener.get().onSHTZException();
         }
         if (this.enabled) {
-            if ("magton".equals(Build.MODEL)) {
-                this.controller.reset();
-            } else {
-                SHTZTools.resetFingerPrint();
-            }
             if (this.state == SHTZTools.FINGER_STATE_REGIST) {
                 PWLogger.d("指纹注册失败");
                 if (EmptyUtils.isNotEmpty(this.listener)) {
@@ -575,6 +547,9 @@ public class SHTZSerialPort implements PWSerialPortListener {
                 if (EmptyUtils.isNotEmpty(this.listener)) {
                     this.listener.get().onSHTZDownloadFailured();
                 }
+            }
+            if (EmptyUtils.isNotEmpty(this.listener)) {
+                this.listener.get().onSHTZReset();
             }
         }
     }

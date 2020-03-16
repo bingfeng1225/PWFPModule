@@ -2,6 +2,7 @@ package cn.haier.bio.medical.fp.shtz;
 
 public interface ISHTZListener {
     void onSHTZReady();
+    void onSHTZReset();
     void onSHTZConnected();
     void onSHTZException();
 

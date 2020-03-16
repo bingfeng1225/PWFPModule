@@ -26,10 +26,10 @@ public class SHTZManager {
 
     }
 
-    public void init(ISHTZListener listener) {
+    public void init(String path) {
         if(EmptyUtils.isEmpty(this.serialPort)){
             this.serialPort = new SHTZSerialPort();
-            this.serialPort.init(listener);
+            this.serialPort.init(path);
         }
     }
 
@@ -69,7 +69,6 @@ public class SHTZManager {
         }
         return false;
     }
-
 
     public void release() {
         if(EmptyUtils.isNotEmpty(this.serialPort)){

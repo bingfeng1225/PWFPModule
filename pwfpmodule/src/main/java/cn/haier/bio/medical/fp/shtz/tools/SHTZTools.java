@@ -1,9 +1,6 @@
 package cn.haier.bio.medical.fp.shtz.tools;
 
-import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.pwtools.ByteUtils;
-import cn.qd.peiwen.pwtools.ThreadUtils;
-import cn.qd.peiwen.serialport.PWSerialPort;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -42,18 +39,6 @@ public class SHTZTools {
         }
         byte check = ByteUtils.computeXORCode(data, 1, data.length - 3);
         return (check == data[data.length - 2]);
-    }
-
-    public static void resetFingerPrint() {
-        PWLogger.d("FingerPrint OFF");
-        PWSerialPort.writeFile(FINGER_RESET_TARGET, FINGER_RESET_OFF);
-        ThreadUtils.sleep(50L);
-        PWSerialPort.writeFile(FINGER_RESET_USB, FINGER_RESET_OFF);
-        ThreadUtils.sleep(50L);
-        PWLogger.d("FingerPrint  ON");
-        PWSerialPort.writeFile(FINGER_RESET_TARGET, FINGER_RESET_ON);
-        ThreadUtils.sleep(50L);
-        PWSerialPort.writeFile(FINGER_RESET_USB, FINGER_RESET_ON);
     }
 
     public static byte[] packageCommand(int type, int param) {
