@@ -530,7 +530,12 @@ class SHTZSerialPort implements PWSerialPortListener {
 
     @Override
     public void onReadThreadReleased(PWSerialPortHelper helper) {
-
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onSHTZPrint("SHTZSerialPort read thread released");
+        }
     }
 
 
@@ -567,7 +572,12 @@ class SHTZSerialPort implements PWSerialPortListener {
 
     @Override
     public void onStateChanged(PWSerialPortHelper helper, PWSerialPortState state) {
-
+        if (!this.isInitialized() || !helper.equals(this.helper)) {
+            return;
+        }
+        if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onSHTZPrint("SHTZSerialPort state changed: " + state.name());
+        }
     }
 
     @Override
