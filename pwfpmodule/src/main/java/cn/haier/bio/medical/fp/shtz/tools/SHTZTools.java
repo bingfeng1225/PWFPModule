@@ -1,6 +1,9 @@
 package cn.haier.bio.medical.fp.shtz.tools;
 
-import cn.qd.peiwen.pwtools.ByteUtils;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -33,7 +36,7 @@ public class SHTZTools {
         if ((data[data.length - 1] & 0xff) != 0xF5) {
             return false;
         }
-        byte check = ByteUtils.computeXORCode(data, 1, data.length - 3);
+        byte check = computeXORCode(data, 1, data.length - 3);
         return (check == data[data.length - 2]);
     }
 
@@ -81,9 +84,113 @@ public class SHTZTools {
         }
         byte[] data = new byte[8];
         buffer.readBytes(data, 0, 6);
-        data[6] = ByteUtils.computeXORCode(data, 1, 5);
+        data[6] = computeXORCode(data, 1, 5);
         data[7] = (byte) 0xF5;
         buffer.release();
         return data;
+    }
+
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean writeFile(String path, byte[] bytes, int length) {
+        RandomAccessFile raf = null;
+        try {
+            File file = new File(path);
+            raf = new RandomAccessFile(file, "rwd");
+            raf.seek(file.length());
+            raf.write(bytes, 0, length);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (null != raf) {
+                try {
+                    raf.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static String bytes2HexString(byte[] data) {
+        return bytes2HexString(data, false);
+    }
+
+    public static String bytes2HexString(byte[] data, boolean hexFlag) {
+        return bytes2HexString(data, hexFlag, null);
+    }
+
+    public static String bytes2HexString(byte[] data, boolean hexFlag, String separator) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        return bytes2HexString(data, 0, data.length, hexFlag, separator);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len) {
+        return bytes2HexString(data, offset, len, false);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len, boolean hexFlag) {
+        return bytes2HexString(data, offset, len, hexFlag, null);
+    }
+
+    public static String bytes2HexString(byte[] data, int offset, int len, boolean hexFlag, String separator) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        if (offset < 0 || offset > data.length - 1) {
+            throw new IllegalArgumentException("The offset index out of bounds");
+        }
+        if (len < 0 || offset + len > data.length) {
+            throw new IllegalArgumentException("The len can not be < 0 or (offset + len) index out of bounds");
+        }
+        String format = "%02X";
+        if (hexFlag) {
+            format = "0x%02X";
+        }
+        StringBuffer buffer = new StringBuffer();
+        for (int i = offset; i < offset + len; i++) {
+            buffer.append(String.format(format, data[i]));
+            if (separator == null) {
+                continue;
+            }
+            if (i != (offset + len - 1)) {
+                buffer.append(separator);
+            }
+        }
+        return buffer.toString();
+    }
+
+    public static byte computeXORCode(byte[] data) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        return computeXORCode(data, 0, data.length);
+    }
+
+    public static byte computeXORCode(byte[] data, int offset, int len) {
+        if (data == null) {
+            throw new IllegalArgumentException("The data can not be blank");
+        }
+        if (offset < 0 || offset > data.length - 1) {
+            throw new IllegalArgumentException("The offset index out of bounds");
+        }
+        if (len < 0 || offset + len > data.length) {
+            throw new IllegalArgumentException("The len can not be < 0 or (offset + len) index out of bounds");
+        }
+        byte temp = data[offset];
+        for (int i = offset + 1; i < offset + len; i++) {
+            temp ^= data[i];
+        }
+        return temp;
     }
 }

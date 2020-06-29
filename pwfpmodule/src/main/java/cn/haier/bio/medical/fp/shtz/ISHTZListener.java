@@ -4,7 +4,8 @@ public interface ISHTZListener {
     void onSHTZReady();
     void onSHTZReset();
     void onSHTZConnected();
-    void onSHTZException();
+    void onSHTZPrint(String message);
+    void onSHTZException(Throwable throwable);
 
     void onSHTZRegistStated();
     void onSHTZRegistTimeout();
