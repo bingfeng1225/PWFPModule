@@ -1,4 +1,4 @@
-package cn.haier.bio.medical.fp.shtz.tools;
+package cn.haier.bio.medical.fp.shtz;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class SHTZTools {
+class SHTZTools {
     public static final int FINGER_COMMAND_CLEAR = 0x05;
     public static final int FINGER_COMMAND_BREAK = 0xFE;
     public static final int FINGER_COMMAND_DELETE = 0x04;

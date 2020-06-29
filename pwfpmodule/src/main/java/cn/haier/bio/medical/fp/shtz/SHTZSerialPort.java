@@ -13,7 +13,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.haier.bio.medical.fp.shtz.tools.SHTZTools;
 import cn.qd.peiwen.serialport.PWSerialPortHelper;
 import cn.qd.peiwen.serialport.PWSerialPortListener;
 import cn.qd.peiwen.serialport.PWSerialPortState;
