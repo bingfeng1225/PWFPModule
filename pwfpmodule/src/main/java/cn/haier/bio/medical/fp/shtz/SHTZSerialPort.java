@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.haier.bio.medical.fp.shtz.tools.SHTZTools;
-import cn.qd.peiwen.pwlogger.PWLogger;
 import cn.qd.peiwen.serialport.PWSerialPortHelper;
 import cn.qd.peiwen.serialport.PWSerialPortListener;
 import cn.qd.peiwen.serialport.PWSerialPortState;
@@ -169,7 +168,7 @@ class SHTZSerialPort implements PWSerialPortListener {
             return;
         }
         this.helper.write(data);
-        PWLogger.d("SHTZ Send:" + SHTZTools.bytes2HexString(data, true, ", "));
+        this.loggerPrint("SHTZSerialPort Send:" + SHTZTools.bytes2HexString(data, true, ", "));
     }
 
     private void sendCommand(int type) {
@@ -181,32 +180,38 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.write(data);
     }
 
+    private void loggerPrint(String message) {
+        if(null != this.listener && null != this.listener.get()){
+            this.listener.get().onSHTZPrint(message);
+        }
+    }
+
     private void changeFingerPrintState(int state) {
         this.state = state;
-        PWLogger.d("中断模组当前操作");
+        this.loggerPrint("SHTZSerialPort 中断模组当前操作");
         this.sendCommand(SHTZTools.FINGER_COMMAND_BREAK);
     }
 
     private void operationInterrupted() {
         switch (this.state) {
             case SHTZTools.FINGER_STATE_REGIST:
-                PWLogger.d("设置抬手检测");
+                this.loggerPrint("SHTZSerialPort 设置抬手检测");
                 this.sendCommand(SHTZTools.FINGER_COMMAND_REGIST_HAND_DETECTION);
                 break;
             case SHTZTools.FINGER_STATE_UPLOAD:
-                PWLogger.d("清空所有已注册指纹");
+                this.loggerPrint("SHTZSerialPort 清空所有已注册指纹");
                 this.sendCommand(SHTZTools.FINGER_COMMAND_CLEAR);
                 break;
             case SHTZTools.FINGER_STATE_DOWNLOAD:
-                PWLogger.d("查询所有已注册指纹");
+                this.loggerPrint("SHTZSerialPort 查询所有已注册指纹");
                 this.sendCommand(SHTZTools.FINGER_COMMAND_SEARCH_FINGER);
                 break;
             case SHTZTools.FINGER_STATE_REGIST_MODEL:
-                PWLogger.d("设置拒绝重复注册");
+                this.loggerPrint("SHTZSerialPort 设置拒绝重复注册");
                 this.sendCommand(SHTZTools.FINGER_COMMAND_REGIST_REFUSE_REPEAT);
                 break;
             default: {
-                PWLogger.d("开始指纹识别");
+                this.loggerPrint("SHTZSerialPort 开始指纹识别");
                 this.handler.sendEmptyMessageDelayed(SHTZTools.FINGER_COMMAND_COMPARE, 1000);
                 break;
             }
@@ -229,7 +234,7 @@ class SHTZSerialPort implements PWSerialPortListener {
 
     private void uplaodFinger() throws IOException {
         String filePath = this.fileList.get(this.currentIndex);
-        PWLogger.d("指纹上传开始:" + filePath);
+        this.loggerPrint("SHTZSerialPort 指纹上传开始:" + filePath);
         this.sendCommand(SHTZTools.FINGER_COMMAND_UPLOAD, 8195);
         InputStream stream = new FileInputStream(filePath);
         while (stream.available() > 0) {
@@ -245,14 +250,14 @@ class SHTZSerialPort implements PWSerialPortListener {
             this.write(data);
             SHTZTools.sleep(30);//200
         }
-        PWLogger.d("指纹上传完成:" + filePath);
+        this.loggerPrint("SHTZSerialPort 指纹上传完成:" + filePath);
         stream.close();
     }
 
     private void processUnknownCommand() {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        PWLogger.d("指令无法识别");
+        this.loggerPrint("SHTZSerialPort 指令无法识别");
     }
 
     private void processFileList() throws IOException {
@@ -260,7 +265,7 @@ class SHTZSerialPort implements PWSerialPortListener {
         if (this.currentIndex < this.fileList.size()) {
             this.uplaodFinger();
         } else {
-            PWLogger.d("指纹上传完毕");
+            this.loggerPrint("SHTZSerialPort 指纹上传完毕");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZUploadSuccessed();
             }
@@ -271,7 +276,7 @@ class SHTZSerialPort implements PWSerialPortListener {
     private void processClearCommand() throws IOException {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        PWLogger.d("所有指纹已删除");
+        this.loggerPrint("SHTZSerialPort 所有指纹已删除");
         this.currentIndex = -1;
         this.processFileList();
     }
@@ -279,7 +284,7 @@ class SHTZSerialPort implements PWSerialPortListener {
     private void processBreakCommand() {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        PWLogger.d("指纹操作中断");
+        this.loggerPrint("SHTZSerialPort 指纹操作中断");
         this.operationInterrupted();
     }
 
@@ -289,10 +294,10 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.buffer.skipBytes(3);
         this.buffer.discardReadBytes();
         if (status == 0x00) {
-            PWLogger.d("指纹上传成功:" + this.fileList.get(this.currentIndex));
+            this.loggerPrint("SHTZSerialPort 指纹上传成功:" + this.fileList.get(this.currentIndex));
             this.processFileList();
         } else {
-            PWLogger.d("指纹上传失败");
+            this.loggerPrint("SHTZSerialPort 指纹上传失败");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZUploadFailured();
             }
@@ -313,19 +318,19 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.buffer.skipBytes(3);
         this.buffer.discardReadBytes();
         if (status == 0x08) {
-            PWLogger.d("指纹比对超时");
+            this.loggerPrint("SHTZSerialPort 指纹比对超时");
             this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
         } else if (status == 0x18) {
-            PWLogger.d("指纹比对中断");
+            this.loggerPrint("SHTZSerialPort 指纹比对中断");
             this.operationInterrupted();
         } else {
             if (finger == 0) {
-                PWLogger.d("指纹未注册");
+                this.loggerPrint("SHTZSerialPort 指纹未注册");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZFingerUNRegistered();
                 }
             } else {
-                PWLogger.d("指纹比对成功");
+                this.loggerPrint("SHTZSerialPort 指纹比对成功");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZFingerRecognized(finger);
                 }
@@ -354,12 +359,12 @@ class SHTZSerialPort implements PWSerialPortListener {
                 if (!SHTZTools.writeFile(this.filePath + File.separator + finger + ".finger", data, data.length)) {
                     throw new IOException("Write finger file error");
                 } else {
-                    PWLogger.d("指纹下载完成：" + finger);
+                    this.loggerPrint("SHTZSerialPort 指纹下载完成：" + finger);
                     this.processFingerList();
                 }
             }
         } else {
-            PWLogger.d("指纹下载失败");
+            this.loggerPrint("SHTZSerialPort 指纹下载失败");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZDownloadFailured();
             }
@@ -370,7 +375,7 @@ class SHTZSerialPort implements PWSerialPortListener {
     private void processRegistFirstCommand() {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        PWLogger.d("指纹注册第二步开始");
+        this.loggerPrint("SHTZSerialPort 指纹注册第二步开始");
         if(null != this.listener && null != this.listener.get()){
             this.listener.get().onSHTZRegistStepChanged(2);
         }
@@ -383,7 +388,7 @@ class SHTZSerialPort implements PWSerialPortListener {
         if(null != this.listener && null != this.listener.get()){
             this.listener.get().onSHTZRegistStepChanged(3);
         }
-        PWLogger.d("指纹注册第三步开始");
+        this.loggerPrint("SHTZSerialPort 指纹注册第三步开始");
         this.handler.sendEmptyMessageDelayed(SHTZTools.FINGER_COMMAND_REGIST_THIRD, 1000);
     }
 
@@ -395,22 +400,22 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.buffer.discardReadBytes();
         this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
         if (status == 0x00) {//注册成功
-            PWLogger.d("指纹注册成功");
+            this.loggerPrint("SHTZSerialPort 指纹注册成功");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZRegistSuccessed(finger);
             }
         } else if (status == 0x08) {//超时
-            PWLogger.d("指纹注册超时");
+            this.loggerPrint("SHTZSerialPort 指纹注册超时");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZRegistTimeout();
             }
         } else if (status == 0x07) {//重复注册
-            PWLogger.d("指纹注册重复");
+            this.loggerPrint("SHTZSerialPort 指纹注册重复");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZFingerAlreadyExists();
             }
         } else {//注册失败
-            PWLogger.d("指纹注册失败");
+            this.loggerPrint("SHTZSerialPort 指纹注册失败");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZRegistFailured();
             }
@@ -425,7 +430,7 @@ class SHTZSerialPort implements PWSerialPortListener {
         for (int i = 0; i < number; i++) {
             int finger = this.buffer.readShort();
             int role = this.buffer.readByte();
-            PWLogger.d("发现已注册指纹：" + finger + "，分组：" + role);
+            this.loggerPrint("SHTZSerialPort 发现已注册指纹：" + finger + "，分组：" + role);
             list.add(finger);
         }
         this.buffer.skipBytes(2);
@@ -437,26 +442,26 @@ class SHTZSerialPort implements PWSerialPortListener {
         if (this.currentIndex < this.fingerList.size()) {
             int finger = this.fingerList.get(this.currentIndex);
             if (this.state == SHTZTools.FINGER_STATE_DOWNLOAD) {
-                PWLogger.d("指纹下载开始：" + finger);
+                this.loggerPrint("SHTZSerialPort 指纹下载开始：" + finger);
                 this.sendCommand(SHTZTools.FINGER_COMMAND_DOWNLOAD, finger);
             } else {
                 if (this.isFingerValid(finger)) {
-                    PWLogger.d("发现已绑定用户指纹：" + finger);
+                    this.loggerPrint("SHTZSerialPort 发现已绑定用户指纹：" + finger);
                     this.processFingerList();
                 } else {
-                    PWLogger.d("删除未绑定用户指纹：" + finger);
+                    this.loggerPrint("SHTZSerialPort 删除未绑定用户指纹：" + finger);
                     this.sendCommand(SHTZTools.FINGER_COMMAND_DELETE, finger);
                 }
             }
         } else {
             if (this.state == SHTZTools.FINGER_STATE_REGIST) {
-                PWLogger.d("指纹注册第一步开始");
+                this.loggerPrint("SHTZSerialPort 指纹注册第一步开始");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZRegistStepChanged(1);
                 }
                 this.sendCommand(SHTZTools.FINGER_COMMAND_REGIST_FIRST);
             } else {
-                PWLogger.d("指纹下载完毕");
+                this.loggerPrint("SHTZSerialPort 指纹下载完毕");
                 this.fireDownloadSuccessed();
                 this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
             }
@@ -479,16 +484,16 @@ class SHTZSerialPort implements PWSerialPortListener {
                 this.processFingerList();
             }
         } else {
-            PWLogger.d("无已注册指纹");
+            this.loggerPrint("SHTZSerialPort 无已注册指纹");
             this.buffer.discardReadBytes();
             if (this.state == SHTZTools.FINGER_STATE_REGIST) {
-                PWLogger.d("指纹注册第一步开始");
+                this.loggerPrint("SHTZSerialPort 指纹注册第一步开始");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZRegistStepChanged(1);
                 }
                 this.sendCommand(SHTZTools.FINGER_COMMAND_REGIST_FIRST);
             } else if (this.state == SHTZTools.FINGER_STATE_DOWNLOAD) {
-                PWLogger.d("无可下载的指纹特征");
+                this.loggerPrint("SHTZSerialPort 无可下载的指纹特征");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZNoFingerExist();
                 }
@@ -506,7 +511,7 @@ class SHTZSerialPort implements PWSerialPortListener {
     private void processHandDetectionCommand() {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        PWLogger.d("查询所有已注册指纹");
+        this.loggerPrint("SHTZSerialPort 查询所有已注册指纹");
         this.sendCommand(SHTZTools.FINGER_COMMAND_SEARCH_FINGER);
     }
 
@@ -540,17 +545,17 @@ class SHTZSerialPort implements PWSerialPortListener {
         }
         if (this.enabled) {
             if (this.state == SHTZTools.FINGER_STATE_REGIST) {
-                PWLogger.d("指纹注册失败");
+                this.loggerPrint("SHTZSerialPort 指纹注册失败");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZRegistFailured();
                 }
             } else if (this.state == SHTZTools.FINGER_STATE_UPLOAD) {
-                PWLogger.d("指纹上传失败");
+                this.loggerPrint("SHTZSerialPort 指纹上传失败");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZUploadFailured();
                 }
             } else if (this.state == SHTZTools.FINGER_STATE_DOWNLOAD) {
-                PWLogger.d("指纹下载失败");
+                this.loggerPrint("SHTZSerialPort 指纹下载失败");
                 if(null != this.listener && null != this.listener.get()){
                     this.listener.get().onSHTZDownloadFailured();
                 }
@@ -588,7 +593,7 @@ class SHTZSerialPort implements PWSerialPortListener {
         if (!SHTZTools.checkFrame(data)) {
             return;
         }
-        PWLogger.d("SHTZ Recv:" + SHTZTools.bytes2HexString(data, true, ", "));
+        this.loggerPrint("SHTZSerialPort Recv:" + SHTZTools.bytes2HexString(data, true, ", "));
         int command = data[1] & 0xff;
         switch (command) {
             case SHTZTools.FINGER_COMMAND_CLEAR://删除所有已注册指纹
