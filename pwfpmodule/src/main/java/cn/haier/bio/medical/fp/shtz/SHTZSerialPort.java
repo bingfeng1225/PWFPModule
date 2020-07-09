@@ -30,6 +30,7 @@ class SHTZSerialPort implements PWSerialPortListener {
     private boolean enabled = false;
     private WeakReference<ISHTZListener> listener;
 
+    private int finger = 0;
     private int currentIndex = 0;
     private String filePath = null;
     private List<String> fileList = null;
@@ -76,6 +77,20 @@ class SHTZSerialPort implements PWSerialPortListener {
             this.listener.get().onSHTZRegistStated();
         }
         this.changeFingerPrintState(SHTZTools.FINGER_STATE_REGIST);
+    }
+
+    public void clear() {
+        if(null != this.listener && null != this.listener.get()){
+            this.listener.get().onSHTZClearStarted();
+        }
+        this.changeFingerPrintState(SHTZTools.FINGER_STATE_CLEAR);
+    }
+    public void delete(int finger) {
+        this.finger = finger;
+        if(null != this.listener && null != this.listener.get()){
+            this.listener.get().onSHTZDeleteStarted();
+        }
+        this.changeFingerPrintState(SHTZTools.FINGER_STATE_DELTE);
     }
 
     public void uplaod(List<String> fileList) {
@@ -193,6 +208,14 @@ class SHTZSerialPort implements PWSerialPortListener {
 
     private void operationInterrupted() {
         switch (this.state) {
+            case SHTZTools.FINGER_STATE_CLEAR:
+                this.loggerPrint("SHTZSerialPort 清空指纹");
+                this.sendCommand(SHTZTools.FINGER_COMMAND_CLEAR);
+                break;
+            case SHTZTools.FINGER_STATE_DELTE:
+                this.loggerPrint("SHTZSerialPort 删除指纹");
+                this.sendCommand(SHTZTools.FINGER_COMMAND_DELETE, this.finger);
+                break;
             case SHTZTools.FINGER_STATE_REGIST:
                 this.loggerPrint("SHTZSerialPort 设置抬手检测");
                 this.sendCommand(SHTZTools.FINGER_COMMAND_REGIST_HAND_DETECTION);
@@ -276,8 +299,15 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
         this.loggerPrint("SHTZSerialPort 所有指纹已删除");
-        this.currentIndex = -1;
-        this.processFileList();
+        if(this.state == SHTZTools.FINGER_STATE_CLEAR){
+            if(null != this.listener && null != this.listener.get()){
+                this.listener.get().onSHTZClearSuccessed();
+            }
+            this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
+        } else {
+            this.currentIndex = -1;
+            this.processFileList();
+        }
     }
 
     private void processBreakCommand() {
@@ -307,7 +337,14 @@ class SHTZSerialPort implements PWSerialPortListener {
     private void processDeleteCommand() {
         this.buffer.skipBytes(8);
         this.buffer.discardReadBytes();
-        this.processFingerList();
+        if(this.state == SHTZTools.FINGER_STATE_DELTE){
+            if(null != this.listener && null != this.listener.get()){
+                this.listener.get().onSHTZDeleteSuccessed();
+            }
+            this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
+        } else {
+            this.processFingerList();
+        }
     }
 
     private void processCompareCommand() {

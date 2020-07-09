@@ -23,10 +23,12 @@ class SHTZTools {
 
     public static final int FINGER_STATE_DISABLED = 0;
     public static final int FINGER_STATE_REGIST = 1;
-    public static final int FINGER_STATE_UPLOAD = 2;
-    public static final int FINGER_STATE_COMPARE = 3;
-    public static final int FINGER_STATE_DOWNLOAD = 4;
-    public static final int FINGER_STATE_REGIST_MODEL = 5;
+    public static final int FINGER_STATE_DELTE = 2;
+    public static final int FINGER_STATE_CLEAR = 3;
+    public static final int FINGER_STATE_UPLOAD = 4;
+    public static final int FINGER_STATE_COMPARE = 5;
+    public static final int FINGER_STATE_DOWNLOAD = 6;
+    public static final int FINGER_STATE_REGIST_MODEL = 7;
 
 
     public static boolean checkFrame(byte[] data) {

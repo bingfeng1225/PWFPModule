@@ -14,6 +14,12 @@ public interface ISHTZListener {
     void onSHTZRegistStepChanged(int step);
     void onSHTZRegistSuccessed(int finger);
 
+    void onSHTZClearStarted();
+    void onSHTZClearSuccessed();
+
+    void onSHTZDeleteStarted();
+    void onSHTZDeleteSuccessed();
+
     void onSHTZUploadStated();
     void onSHTZUploadFailured();
     void onSHTZUploadSuccessed();
