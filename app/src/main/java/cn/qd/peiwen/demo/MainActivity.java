@@ -11,6 +11,7 @@ import cn.haier.bio.medical.fp.shtz.SHTZManager;
 
 public class MainActivity extends AppCompatActivity implements ISHTZListener {
     private int finger = 0;
+    private boolean fingerBusy = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
         Log.d("TAG","onSHTZReset");
     }
 
+
     @Override
     public void onSHTZConnected() {
         Log.d("TAG","onSHTZConnected");
@@ -42,6 +44,12 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
     @Override
     public void onSHTZPrint(String message) {
         Log.d("TAG","" + message);
+    }
+
+
+    @Override
+    public void onSHTZBusyChanged(boolean busy) {
+        this.fingerBusy = busy;
     }
 
     @Override
@@ -154,17 +162,17 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.register:
-                if(!SHTZManager.getInstance().isBusy()) {
+                if(!this.fingerBusy) {
                     SHTZManager.getInstance().regist();
                 }
                 break;
             case R.id.delete:
-                if(this.finger != 0 && !SHTZManager.getInstance().isBusy()) {
+                if(this.finger != 0 && !this.fingerBusy) {
                     SHTZManager.getInstance().delete(this.finger);
                 }
                 break;
             case R.id.clear:
-                if(this.finger != 0 && !SHTZManager.getInstance().isBusy()) {
+                if(this.finger != 0 && !this.fingerBusy) {
                     SHTZManager.getInstance().clear();
                 }
                 break;
