@@ -110,10 +110,6 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.changeFingerPrintState(SHTZTools.FINGER_STATE_DOWNLOAD);
     }
 
-    public boolean isBusy() {
-        return (this.state != SHTZTools.FINGER_STATE_COMPARE);
-    }
-
     public void changeListener(ISHTZListener listener) {
         this.listener = new WeakReference<>(listener);
     }
@@ -204,6 +200,9 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.state = state;
         this.loggerPrint("SHTZSerialPort 中断模组当前操作");
         this.sendCommand(SHTZTools.FINGER_COMMAND_BREAK);
+        if(null != this.listener && null != this.listener.get()){
+            this.listener.get().onSHTZBusyChanged((this.state != SHTZTools.FINGER_STATE_COMPARE));
+        }
     }
 
     private void operationInterrupted() {

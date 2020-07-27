@@ -5,6 +5,7 @@ public interface ISHTZListener {
     void onSHTZReset();
     void onSHTZConnected();
     void onSHTZPrint(String message);
+    void onSHTZBusyChanged(boolean busy);
     void onSHTZException(Throwable throwable);
 
     void onSHTZRegistStated();

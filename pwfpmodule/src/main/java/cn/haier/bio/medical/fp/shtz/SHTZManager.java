@@ -80,13 +80,6 @@ public class SHTZManager {
         }
     }
 
-    public boolean isBusy() {
-        if (null != this.serialPort) {
-            this.serialPort.isBusy();
-        }
-        return false;
-    }
-
     public void changeListener(ISHTZListener listener) {
         if (null != this.serialPort) {
             this.serialPort.changeListener(listener);
