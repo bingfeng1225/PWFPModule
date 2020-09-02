@@ -4,12 +4,14 @@ public interface ISHTZListener {
     void onSHTZReady();
     void onSHTZReset();
     void onSHTZConnected();
+    void onSHTZDisconnected();
     void onSHTZPrint(String message);
     void onSHTZBusyChanged(boolean busy);
     void onSHTZException(Throwable throwable);
 
     void onSHTZRegistStated();
     void onSHTZRegistTimeout();
+    void onSHTZRegistCanceled();
     void onSHTZRegistFailured();
     void onSHTZFingerAlreadyExists();
     void onSHTZRegistStepChanged(int step);
@@ -33,4 +35,5 @@ public interface ISHTZListener {
     void onSHTZFingerRecognized(int finger);
 
     boolean isFingerValid(int finger);
+
 }

@@ -56,6 +56,12 @@ public class SHTZManager {
         }
     }
 
+    public void cancelRegist() {
+        if (null != this.serialPort) {
+            this.serialPort.cancelRegist();
+        }
+    }
+
     public void clear() {
         if (null != this.serialPort) {
             this.serialPort.clear();

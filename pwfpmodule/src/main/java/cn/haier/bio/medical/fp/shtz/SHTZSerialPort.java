@@ -79,6 +79,11 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.changeFingerPrintState(SHTZTools.FINGER_STATE_REGIST);
     }
 
+    public void cancelRegist() {
+        this.loggerPrint("SHTZSerialPort 中断模组当前操作");
+        this.sendCommand(SHTZTools.FINGER_COMMAND_BREAK);
+    }
+
     public void clear() {
         if(null != this.listener && null != this.listener.get()){
             this.listener.get().onSHTZClearStarted();
@@ -201,7 +206,7 @@ class SHTZSerialPort implements PWSerialPortListener {
         this.loggerPrint("SHTZSerialPort 中断模组当前操作");
         this.sendCommand(SHTZTools.FINGER_COMMAND_BREAK);
         if(null != this.listener && null != this.listener.get()){
-            this.listener.get().onSHTZBusyChanged((this.state != SHTZTools.FINGER_STATE_COMPARE));
+            this.listener.get().onSHTZBusyChanged((this.state != SHTZTools.FINGER_STATE_COMPARE && this.state != SHTZTools.FINGER_STATE_REGIST));
         }
     }
 
@@ -433,7 +438,6 @@ class SHTZSerialPort implements PWSerialPortListener {
         int status = this.buffer.readByte();
         this.buffer.skipBytes(3);
         this.buffer.discardReadBytes();
-        this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
         if (status == 0x00) {//注册成功
             this.loggerPrint("SHTZSerialPort 指纹注册成功");
             if(null != this.listener && null != this.listener.get()){
@@ -449,12 +453,18 @@ class SHTZSerialPort implements PWSerialPortListener {
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZFingerAlreadyExists();
             }
+        } else if (status == 0x18) {//指纹注册取消
+            this.loggerPrint("SHTZSerialPort 指纹注册取消");
+            if(null != this.listener && null != this.listener.get()){
+                this.listener.get().onSHTZRegistCanceled();
+            }
         } else {//注册失败
             this.loggerPrint("SHTZSerialPort 指纹注册失败");
             if(null != this.listener && null != this.listener.get()){
                 this.listener.get().onSHTZRegistFailured();
             }
         }
+        this.changeFingerPrintState(SHTZTools.FINGER_STATE_COMPARE);
     }
 
     private List<Integer> parseFingerList() {
@@ -570,10 +580,10 @@ class SHTZSerialPort implements PWSerialPortListener {
             return;
         }
         if (null != this.listener && null != this.listener.get()) {
+            this.listener.get().onSHTZDisconnected();
             this.listener.get().onSHTZPrint("SHTZSerialPort read thread released");
         }
     }
-
 
     @Override
     public void onException(PWSerialPortHelper helper, Throwable throwable) {

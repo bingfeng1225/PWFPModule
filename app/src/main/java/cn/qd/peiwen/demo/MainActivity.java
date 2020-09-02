@@ -12,6 +12,7 @@ import cn.haier.bio.medical.fp.shtz.SHTZManager;
 public class MainActivity extends AppCompatActivity implements ISHTZListener {
     private int finger = 0;
     private boolean fingerBusy = true;
+    private boolean register = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,11 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
     }
 
     @Override
+    public void onSHTZDisconnected() {
+        Log.d("TAG","onSHTZDisconnected");
+    }
+
+    @Override
     public void onSHTZPrint(String message) {
         Log.d("TAG","" + message);
     }
@@ -59,21 +65,31 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
 
     @Override
     public void onSHTZRegistStated() {
+        this.register = true;
         Log.d("TAG","onSHTZRegistStated");
     }
 
     @Override
     public void onSHTZRegistTimeout() {
+        this.register = false;
         Log.d("TAG","onSHTZRegistTimeout");
     }
 
     @Override
+    public void onSHTZRegistCanceled() {
+        this.register = false;
+        Log.d("TAG","onSHTZRegistCanceled");
+    }
+
+    @Override
     public void onSHTZRegistFailured() {
+        this.register = false;
         Log.d("TAG","onSHTZRegistFailured");
     }
 
     @Override
     public void onSHTZFingerAlreadyExists() {
+        this.register = false;
         Log.d("TAG","onSHTZFingerAlreadyExists");
     }
 
@@ -85,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
     @Override
     public void onSHTZRegistSuccessed(int finger) {
         this.finger = finger;
+        this.register = false;
         Log.d("TAG","onSHTZRegistSuccessed " + finger);
     }
 
@@ -164,6 +181,11 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
             case R.id.register:
                 if(!this.fingerBusy) {
                     SHTZManager.getInstance().regist();
+                }
+                break;
+            case R.id.cancel:
+                if(this.register) {
+                    SHTZManager.getInstance().cancelRegist();
                 }
                 break;
             case R.id.delete:
