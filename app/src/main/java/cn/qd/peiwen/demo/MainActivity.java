@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements ISHTZListener {
 
     @Override
     public void onSHTZFingerRecognized(int finger) {
-        Log.d("TAG","onSHTZFingerRecognized " + this.finger);
+        Log.d("TAG","onSHTZFingerRecognized " + finger);
     }
 
     @Override

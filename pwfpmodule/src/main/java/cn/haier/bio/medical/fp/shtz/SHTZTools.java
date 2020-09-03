@@ -18,8 +18,13 @@ class SHTZTools {
     public static final int FINGER_COMMAND_REGIST_THIRD = 0x03;
     public static final int FINGER_COMMAND_REGIST_SECOND = 0x02;
     public static final int FINGER_COMMAND_SEARCH_FINGER = 0x2B;
+    public static final int FINGER_COMMAND_REGIST_CONFIG = 0x3F;
     public static final int FINGER_COMMAND_REGIST_REFUSE_REPEAT= 0x2D;
-    public static final int FINGER_COMMAND_REGIST_HAND_DETECTION = 0x3F;
+
+    public static final int FINGER_REGIST_CONFIG_STEP_1 = 0x0003;
+    public static final int FINGER_REGIST_CONFIG_STEP_2 = 0x0105;
+    public static final int FINGER_REGIST_CONFIG_STEP_3 = 0x0201;
+    public static final int FINGER_REGIST_CONFIG_STEP_4 = 0x0303;
 
     public static final int FINGER_STATE_DISABLED = 0;
     public static final int FINGER_STATE_REGIST = 1;
@@ -29,7 +34,7 @@ class SHTZTools {
     public static final int FINGER_STATE_COMPARE = 5;
     public static final int FINGER_STATE_DOWNLOAD = 6;
     public static final int FINGER_STATE_REGIST_MODEL = 7;
-
+    public static final int FINGER_STATE_REGIST_CONFIG = 8;
 
     public static boolean checkFrame(byte[] data) {
         if ((data[0] & 0xff) != 0xF5) {
@@ -77,10 +82,9 @@ class SHTZTools {
                 buffer.writeByte(0x00);
                 buffer.writeByte(0x00);
                 break;
-            case FINGER_COMMAND_REGIST_HAND_DETECTION:
+            case FINGER_COMMAND_REGIST_CONFIG:
                 buffer.writeByte(0x00);
-                buffer.writeByte(0x02);
-                buffer.writeByte(0x01);
+                buffer.writeShort(param);
                 buffer.writeByte(0x00);
                 break;
         }
