@@ -643,9 +643,9 @@ class SHTZSerialPort implements PWSerialPortListener {
     }
 
     @Override
-    public void onByteReceived(PWSerialPortHelper helper, byte[] buffer, int length) throws IOException {
+    public boolean onByteReceived(PWSerialPortHelper helper, byte[] buffer, int length) throws IOException {
         if (!this.isInitialized() || !helper.equals(this.helper)) {
-            return;
+            return false;
         }
         if (!this.ready) {
             this.ready = true;
@@ -655,14 +655,14 @@ class SHTZSerialPort implements PWSerialPortListener {
         }
         this.buffer.writeBytes(buffer, 0, length);
         if (this.buffer.readableBytes() < 8) {
-            return;
+            return true;
         }
         this.buffer.markReaderIndex();
         byte[] data = new byte[8];
         this.buffer.readBytes(data, 0, 8);
         this.buffer.resetReaderIndex();
         if (!SHTZTools.checkFrame(data)) {
-            return;
+            return true;
         }
         this.loggerPrint("SHTZSerialPort Recv:" + SHTZTools.bytes2HexString(data, true, ", "));
         int command = data[1] & 0xff;
@@ -707,6 +707,7 @@ class SHTZSerialPort implements PWSerialPortListener {
                 this.processUnknownCommand();
                 break;
         }
+        return true;
     }
 
     private class TZFPHandler extends Handler {
